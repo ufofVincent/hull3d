@@ -94,8 +94,8 @@ GLfloat theta[3] = {0,0,0};
 GLint fillmode = 0; 
 
 
-
-
+int render_hull_index = 0;
+bool animate = true;
 
 
 /********************************************************************/
@@ -104,6 +104,7 @@ GLint fillmode = 0;
 
 void display(void);
 void keypress(unsigned char key, int x, int y);
+void timerfunc();
 
 //initializers
 void initialize_points_random(vector<point3d>& points, int n);
@@ -154,8 +155,10 @@ int main(int argc, char** argv) {
   //initialize_points_sphere(points, n, .8);
   //print_vector("points:", points);
 
+  printf("about to call hull");
   //compute the hull 
-  naive_hull(points, hull); 
+  giftwrapping_hull(points, hull); 
+  printf("done %d", hull.size());
   //print_hull(hull);
 
   
@@ -166,6 +169,7 @@ int main(int argc, char** argv) {
   glutInitWindowSize(WINDOWSIZE, WINDOWSIZE);
   glutInitWindowPosition(100,100);
   glutCreateWindow(argv[0]);
+  glutIdleFunc(timerfunc);
 
   /* register callback functions */
   glutDisplayFunc(display); 
@@ -236,6 +240,8 @@ void display(void) {
 
   // The points are in the range [-1, 1]
   draw_points(points);
+
+  cout << "hull drawn" << endl;
   draw_hull(hull); 
   
   // execute the drawing commands
@@ -313,6 +319,11 @@ void keypress(unsigned char key, int x, int y) {
     theta[2] -= 5.0; 
     glutPostRedisplay();
     break;
+  case 'a':
+    animate = !animate;
+    cout << "animate is now " << animate << endl;
+    glutPostRedisplay();
+    break;
 
     //TRANSLATIONS 
     //backward (zoom out)
@@ -365,7 +376,21 @@ void keypress(unsigned char key, int x, int y) {
 }//keypress
 
 
+void timerfunc() {
+  if (animate) {
+    if (hull.size() > 0 && render_hull_index < hull.size()) {
+      render_hull_index = (render_hull_index + 1) % hull.size();
+    }
+    if (render_hull_index == hull.size() -1) {
+      animate = false;
+      cout << "     false" << endl;
+    }
+  }
 
+  if (animate) {
+     glutPostRedisplay();
+  }
+}
 
 
 
@@ -493,10 +518,26 @@ int initialize_points_from_mesh(vector<point3d>& pts, char* fpath) {
   // draw the faces of the hull.
   void draw_hull(vector<triangle3d> hull){
 
+    printf("draw hull called right now %d", hull.size());
+
     if (hull.size() == 0) return;
-    for (int i=0; i< hull.size()-1; i++) {
+    for (int i=0; i< hull.size(); i++) {
       
       //draw the triangle
+      GLfloat col[3] = {hull[i].color.r, hull[i].color.g, hull[i].color.b};
+
+      glColor3fv(col);
+      glPolygonMode(GL_FRONT, GL_FILL);
+      glBegin(GL_POLYGON);
+      glVertex3f(hull[i].a->x, hull[i].a->y, hull[i].a->z);
+      glVertex3f(hull[i].b->x, hull[i].b->y, hull[i].b->z);
+      glVertex3f(hull[i].c->x, hull[i].c->y, hull[i].c->z);
+      glEnd();
+
+      cout << hull[i].a->x << " " << hull[i].a->y << " " << hull[i].a->z << endl;
+      cout << hull[i].b->x << " " << hull[i].b->y << " " << hull[i].b->z << endl;
+      cout << hull[i].c->x << " " << hull[i].c->y << " " << hull[i].c->z << endl;
+      cout << "triangle drawn" << endl;
       
     }
   }//draw-hull 

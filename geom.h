@@ -7,14 +7,28 @@
 using namespace std; 
 
 
+
+
 //note that coordinates are, for now, integers
 typedef struct _point3d {
   double x,y,z; 
 } point3d;
 
+typedef struct _edge {
+  point3d a, b;
+} edge;
+
+typedef struct color {
+  double r, g, b;
+  
+  //to avoid duplication a triangle stores pointers to the points
+  //(which are stored in the vector of points)
+} color;
+
 
 typedef struct _triangle3d {
   point3d *a,*b,*c; 
+  color color;
   //to avoid duplication a triangle stores pointers to the points
   //(which are stored in the vector of points)
 } triangle3d;
